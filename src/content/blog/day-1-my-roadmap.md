@@ -6,7 +6,7 @@ description: 'Setting up my automated portfolio workflow using Astro, GitHub, an
 
 pubDate: 'Jul 03 2026'
 
-heroImage: '/blog-placeholder-about.jpg'
+heroImage: '../../assets/blog-placeholder-about.jpg'
 
 ---
 

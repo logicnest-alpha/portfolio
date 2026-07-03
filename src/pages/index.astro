@@ -1,49 +1,1220 @@
 ---
+import { getCollection } from 'astro:content';
 import BaseHead from '../components/BaseHead.astro';
 import Footer from '../components/Footer.astro';
+import FormattedDate from '../components/FormattedDate.astro';
 import Header from '../components/Header.astro';
 import { SITE_DESCRIPTION, SITE_TITLE } from '../consts';
+
+const posts = (await getCollection('blog')).sort(
+	(a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+).slice(0, 3); // Get latest 3 blog posts
 ---
 
 <!doctype html>
 <html lang="en">
 	<head>
 		<BaseHead title={SITE_TITLE} description={SITE_DESCRIPTION} />
+		<style>
+			/* Page-Specific Animations and Styles */
+			.tensegrity-grid-bg {
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background-image: 
+					radial-gradient(var(--accent-primary-glow) 1px, transparent 1px),
+					radial-gradient(var(--accent-secondary-glow) 1px, transparent 1px);
+				background-size: 30px 30px;
+				background-position: 0 0, 15px 15px;
+				opacity: 0.15;
+				pointer-events: none;
+			}
+			
+			.hero-title-container {
+				text-align: center;
+				padding: 4rem 0 2rem 0;
+				position: relative;
+			}
+
+			.hero-badge {
+				font-family: monospace;
+				font-size: 0.8rem;
+				color: var(--accent-secondary);
+				border: 1px solid rgba(6, 182, 212, 0.3);
+				padding: 0.3rem 0.8rem;
+				border-radius: 9999px;
+				background: rgba(6, 182, 212, 0.05);
+				display: inline-block;
+				margin-bottom: 1rem;
+				letter-spacing: 0.05em;
+				text-transform: uppercase;
+			}
+
+			.hero-title {
+				font-size: 3.5rem;
+				font-weight: 800;
+				line-height: 1.1;
+				background: linear-gradient(to right, #ffffff 40%, var(--accent-primary) 70%, var(--accent-secondary) 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
+				margin-bottom: 1.5rem;
+				letter-spacing: -0.03em;
+			}
+
+			.hero-desc {
+				font-size: 1.15rem;
+				max-width: 650px;
+				margin: 0 auto;
+				color: var(--text-secondary);
+			}
+
+			/* Three Tier Floating Tensegrity Layout */
+			.tensegrity-tower {
+				display: flex;
+				flex-direction: column;
+				gap: 5rem;
+				margin: 3rem 0;
+				position: relative;
+			}
+
+			/* Tier Titles */
+			.tier-header {
+				display: flex;
+				align-items: center;
+				gap: 1rem;
+				margin-bottom: 1.5rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+				padding-bottom: 0.5rem;
+			}
+
+			.tier-num {
+				font-family: monospace;
+				font-size: 0.75rem;
+				color: var(--accent-primary);
+				background: rgba(139, 92, 246, 0.1);
+				border: 1px solid rgba(139, 92, 246, 0.2);
+				padding: 0.1rem 0.5rem;
+				border-radius: 4px;
+			}
+
+			.tier-title {
+				font-size: 1.25rem;
+				text-transform: uppercase;
+				letter-spacing: 0.075em;
+				font-weight: 700;
+			}
+
+			.tier-subtitle {
+				color: var(--text-muted);
+				font-size: 0.85rem;
+				margin-left: auto;
+				font-family: monospace;
+			}
+
+			/* TIER 3: The Vault */
+			.vault-container {
+				padding: 1.5rem;
+			}
+			
+			.terminal-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1rem;
+				font-family: monospace;
+			}
+
+			.terminal-item {
+				display: flex;
+				align-items: flex-start;
+				gap: 1rem;
+				padding: 0.75rem 1rem;
+				border-radius: 8px;
+				background: rgba(3, 3, 7, 0.5);
+				border: 1px solid rgba(255, 255, 255, 0.03);
+				transition: all 0.2s ease;
+			}
+
+			.terminal-item:hover {
+				border-color: rgba(6, 182, 212, 0.2);
+				background: rgba(6, 182, 212, 0.02);
+			}
+
+			.term-prompt {
+				color: var(--accent-secondary);
+				user-select: none;
+			}
+
+			.term-date {
+				color: var(--text-muted);
+			}
+
+			.term-title {
+				color: var(--text-primary);
+				font-weight: bold;
+				text-decoration: none;
+			}
+
+			.term-title:hover {
+				color: var(--accent-secondary);
+			}
+
+			/* TIER 2: Flagship Engine Projects */
+			.projects-grid {
+				display: grid;
+				grid-template-columns: 1fr 1fr;
+				gap: 2rem;
+			}
+
+			.project-card {
+				padding: 2rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.25rem;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.project-card::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 0;
+				width: 4px;
+				height: 100%;
+				background: var(--accent-primary);
+				opacity: 0.5;
+				transition: all 0.3s ease;
+			}
+
+			.project-card:hover::before {
+				height: 100%;
+				background: var(--accent-secondary);
+				opacity: 1;
+				box-shadow: 0 0 15px var(--accent-secondary);
+			}
+
+			.project-meta {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.project-node {
+				font-family: monospace;
+				font-size: 0.75rem;
+				background: rgba(255, 255, 255, 0.05);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				padding: 0.2rem 0.5rem;
+				border-radius: 4px;
+				color: var(--text-secondary);
+			}
+
+			.project-status {
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				font-size: 0.7rem;
+				text-transform: uppercase;
+				font-family: monospace;
+				letter-spacing: 0.05em;
+				color: var(--accent-success);
+			}
+
+			.project-status-dot {
+				width: 5px;
+				height: 5px;
+				background-color: var(--accent-success);
+				border-radius: 50%;
+				box-shadow: 0 0 8px var(--accent-success);
+			}
+
+			.project-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+			}
+
+			.project-desc {
+				font-size: 0.9rem;
+				color: var(--text-secondary);
+				line-height: 1.6;
+			}
+
+			.project-edge-title {
+				font-weight: 700;
+				font-size: 0.8rem;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				color: var(--accent-primary);
+				margin-bottom: 0.4rem;
+			}
+
+			.project-edge-list {
+				list-style-type: none;
+				padding-left: 0;
+				display: flex;
+				flex-direction: column;
+				gap: 0.4rem;
+			}
+
+			.project-edge-item {
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				display: flex;
+				align-items: flex-start;
+				gap: 0.5rem;
+			}
+
+			.project-edge-item::before {
+				content: "→";
+				color: var(--accent-secondary);
+			}
+
+			.vibe-badge {
+				background: rgba(236, 72, 153, 0.08);
+				border: 1px solid rgba(236, 72, 153, 0.2);
+				border-radius: 8px;
+				padding: 0.75rem 1rem;
+				font-size: 0.8rem;
+				color: #f472b6;
+				line-height: 1.5;
+				margin-top: auto;
+			}
+
+			.project-footer {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				margin-top: auto;
+				padding-top: 1rem;
+				border-top: 1px solid rgba(255, 255, 255, 0.03);
+			}
+
+			.project-tech {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.4rem;
+			}
+
+			.tech-tag {
+				font-size: 0.7rem;
+				font-family: monospace;
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px solid rgba(255, 255, 255, 0.06);
+				color: var(--text-muted);
+				padding: 0.15rem 0.4rem;
+				border-radius: 4px;
+			}
+
+			.project-link {
+				display: flex;
+				align-items: center;
+				gap: 0.4rem;
+				font-size: 0.8rem;
+				font-weight: 600;
+				color: var(--text-primary);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				padding: 0.4rem 0.8rem;
+				border-radius: 6px;
+				background: rgba(255, 255, 255, 0.02);
+				transition: all 0.2s ease;
+			}
+
+			.project-link:hover {
+				color: var(--accent-secondary);
+				border-color: rgba(6, 182, 212, 0.3);
+				background: rgba(6, 182, 212, 0.05);
+			}
+
+			/* TIER 1: The Foundation Anchor Base */
+			.foundation-grid {
+				display: grid;
+				grid-template-columns: 1.2fr 1fr;
+				gap: 2rem;
+			}
+
+			.bio-panel {
+				padding: 2.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.5rem;
+			}
+
+			.bio-name {
+				font-size: 2rem;
+				font-weight: 800;
+			}
+
+			.bio-subtitle {
+				font-family: monospace;
+				font-size: 0.9rem;
+				color: var(--accent-secondary);
+			}
+
+			.bio-text {
+				font-size: 0.95rem;
+				line-height: 1.7;
+				color: var(--text-secondary);
+			}
+
+			.skills-panel {
+				padding: 2.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.5rem;
+			}
+
+			.skills-section-title {
+				font-size: 0.85rem;
+				text-transform: uppercase;
+				font-weight: 700;
+				letter-spacing: 0.075em;
+				color: var(--accent-primary);
+				margin-bottom: 0.5rem;
+			}
+
+			.skills-list {
+				display: flex;
+				flex-direction: column;
+				gap: 1.25rem;
+			}
+
+			.skill-group {
+				border-left: 2px solid rgba(255, 255, 255, 0.05);
+				padding-left: 1rem;
+			}
+
+			.skill-group-title {
+				font-size: 0.95rem;
+				font-weight: bold;
+				margin-bottom: 0.4rem;
+				color: var(--text-primary);
+			}
+
+			.skill-group-items {
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				line-height: 1.5;
+			}
+
+			/* Resume Core */
+			.resume-core {
+				grid-column: span 2;
+				padding: 2.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 2rem;
+			}
+
+			.resume-title {
+				font-size: 1.5rem;
+				font-weight: 700;
+			}
+
+			.timeline {
+				display: flex;
+				flex-direction: column;
+				gap: 2rem;
+				position: relative;
+			}
+
+			.timeline::before {
+				content: '';
+				position: absolute;
+				top: 0;
+				left: 9px;
+				height: 100%;
+				width: 2px;
+				background: rgba(255, 255, 255, 0.05);
+			}
+
+			.timeline-item {
+				position: relative;
+				padding-left: 2.5rem;
+			}
+
+			.timeline-dot {
+				position: absolute;
+				left: 4px;
+				top: 6px;
+				width: 12px;
+				height: 12px;
+				border-radius: 50%;
+				background: var(--bg-primary);
+				border: 3px solid var(--accent-primary);
+			}
+
+			.timeline-header {
+				display: flex;
+				justify-content: space-between;
+				align-items: flex-start;
+				margin-bottom: 0.5rem;
+			}
+
+			.timeline-org {
+				font-size: 1.1rem;
+				font-weight: 700;
+				color: var(--text-primary);
+			}
+
+			.timeline-role {
+				font-size: 0.9rem;
+				color: var(--accent-secondary);
+				font-family: monospace;
+			}
+
+			.timeline-date {
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				font-family: monospace;
+			}
+
+			.timeline-desc {
+				font-size: 0.9rem;
+				color: var(--text-secondary);
+				line-height: 1.6;
+			}
+
+			.timeline-bullets {
+				list-style-type: none;
+				padding-left: 0;
+				margin-top: 0.5rem;
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+			}
+
+			.timeline-bullet {
+				font-size: 0.85rem;
+				color: var(--text-secondary);
+				display: flex;
+				align-items: flex-start;
+				gap: 0.5rem;
+			}
+
+			.timeline-bullet::before {
+				content: "⚡";
+				font-size: 0.75rem;
+				color: var(--accent-primary);
+			}
+
+			/* Tension Cables Visualizer Widget */
+			.tensegrity-widget-container {
+				margin-top: 4rem;
+				padding: 2rem;
+				display: flex;
+				flex-direction: column;
+				gap: 1.5rem;
+				position: relative;
+				overflow: hidden;
+			}
+
+			.widget-canvas-container {
+				width: 100%;
+				height: 300px;
+				border-radius: 12px;
+				background: rgba(3, 3, 7, 0.8);
+				border: 1px solid rgba(255, 255, 255, 0.05);
+				position: relative;
+				overflow: hidden;
+			}
+
+			.widget-canvas {
+				width: 100%;
+				height: 100%;
+				cursor: grab;
+			}
+
+			.widget-canvas:active {
+				cursor: grabbing;
+			}
+
+			.widget-controls {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				font-size: 0.8rem;
+				color: var(--text-muted);
+				font-family: monospace;
+			}
+
+			.control-btn {
+				background: rgba(255, 255, 255, 0.03);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				color: var(--text-secondary);
+				padding: 0.3rem 0.8rem;
+				border-radius: 4px;
+				cursor: pointer;
+				transition: all 0.2s ease;
+			}
+
+			.control-btn:hover {
+				color: var(--accent-secondary);
+				border-color: rgba(6, 182, 212, 0.3);
+				background: rgba(6, 182, 212, 0.05);
+			}
+
+			@media (max-width: 900px) {
+				.projects-grid {
+					grid-template-columns: 1fr;
+				}
+				.foundation-grid {
+					grid-template-columns: 1fr;
+				}
+				.resume-core {
+					grid-column: span 1;
+				}
+			}
+
+			@media (max-width: 600px) {
+				.hero-title {
+					font-size: 2.25rem;
+				}
+				.timeline-header {
+					flex-direction: column;
+					gap: 0.25rem;
+				}
+			}
+		</style>
 	</head>
 	<body>
 		<Header />
-		<main>
-			<h1>🧑‍🚀 Hello, Astronaut!</h1>
-			<p>
-				Welcome to the official <a href="https://astro.build/">Astro</a> blog starter template. This template
-				serves as a lightweight, minimally-styled starting point for anyone looking to build a personal
-				website, blog, or portfolio with Astro.
-			</p>
-			<p>
-				This template comes with a few integrations already configured in your
-				<code>astro.config.mjs</code> file. You can customize your setup with
-				<a href="https://astro.build/integrations">Astro Integrations</a> to add tools like Tailwind,
-				React, or Vue to your project.
-			</p>
-			<p>Here are a few ideas on how to get started with the template:</p>
-			<ul>
-				<li>Edit this page in <code>src/pages/index.astro</code></li>
-				<li>Edit the site header items in <code>src/components/Header.astro</code></li>
-				<li>Add your name to the footer in <code>src/components/Footer.astro</code></li>
-				<li>Check out the included blog posts in <code>src/content/blog/</code></li>
-				<li>Customize the blog post page layout in <code>src/layouts/BlogPost.astro</code></li>
-			</ul>
-			<p>
-				Have fun! If you get stuck, remember to
-				<a href="https://docs.astro.build/">read the docs</a>
-				or <a href="https://astro.build/chat">join us on Discord</a> to ask questions.
-			</p>
-			<p>
-				Looking for a blog template with a bit more personality? Check out
-				<a href="https://github.com/Charca/astro-blog-template">astro-blog-template</a>
-				by <a href="https://twitter.com/Charca">Maxi Ferreira</a>.
-			</p>
+		<main style="position: relative;">
+			<div class="tensegrity-grid-bg"></div>
+
+			<!-- Connection Cable Overlays -->
+			<!-- Using SVGs to render responsive connectors that dynamically illuminate based on card actions -->
+			<svg class="cable-overlay" id="cable-overlay" viewBox="0 0 1200 1600" preserveAspectRatio="none">
+				<!-- Tier 3 to Tier 2 connections -->
+				<path class="cable-line" id="cable-t3-a" d="M 600,280 Q 400,380 300,450" />
+				<path class="cable-line" id="cable-t3-b" d="M 600,280 Q 500,380 900,450" />
+				<path class="cable-line" id="cable-t3-c" d="M 600,280 Q 450,450 300,800" />
+				<path class="cable-line" id="cable-t3-d" d="M 600,280 Q 750,450 900,800" />
+
+				<!-- Tier 2 to Tier 1 connections -->
+				<path class="cable-line" id="cable-a-t1" d="M 300,750 Q 250,900 350,1100" />
+				<path class="cable-line" id="cable-b-t1" d="M 900,750 Q 950,900 850,1100" />
+				<path class="cable-line" id="cable-c-t1" d="M 300,1050 Q 400,1150 450,1100" />
+				<path class="cable-line" id="cable-d-t1" d="M 900,1050 Q 800,1150 750,1100" />
+			</svg>
+
+			<section class="hero-title-container">
+				<span class="hero-badge">Astro Engineering Core v2.0</span>
+				<h1 class="hero-title">Suspended by Tension,<br />Driven by Code.</h1>
+				<p class="hero-desc">
+					Vishal Chepyala is a CSE builder designing systems where hardware meets AI-assisted software. Constructing high-output automation, local IoT bridges, and decentralized platforms.
+				</p>
+			</section>
+
+			<div class="tensegrity-tower">
+				
+				<!-- TIER 3: THE VAULT / DAILY BLOG -->
+				<div class="tier-wrapper" id="tier-3">
+					<div class="tier-header">
+						<span class="tier-num">Tier 03</span>
+						<h2 class="tier-title">The Vault / Daily Blog</h2>
+						<span class="tier-subtitle">status: suspended_log_output</span>
+					</div>
+					<div class="glass-panel vault-container">
+						<div class="terminal-list">
+							{posts.map((post) => (
+								<div class="terminal-item">
+									<span class="term-prompt">$</span>
+									<span class="term-date">[{post.data.pubDate.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}]</span>
+									<span class="term-prompt">cat</span>
+									<a href={`/blog/${post.id}/`} class="term-title">
+										{post.data.title}
+									</a>
+									<span style="color: var(--text-muted); margin-left: 0.5rem;">- {post.data.description}</span>
+								</div>
+							))}
+							<div class="terminal-item" style="opacity: 0.7;">
+								<span class="term-prompt">$</span>
+								<span class="term-date">[System]</span>
+								<span class="term-prompt">uptime</span>
+								<span style="color: var(--accent-success);">Grid suspended successfully. 4 nodes balanced in tension.</span>
+							</div>
+						</div>
+					</div>
+				</div>
+
+				<!-- TIER 2: THE FLAGSHIP ENGINE PROJECTS -->
+				<div class="tier-wrapper" id="tier-2">
+					<div class="tier-header">
+						<span class="tier-num">Tier 02</span>
+						<h2 class="tier-title">Flagship Engine Projects</h2>
+						<span class="tier-subtitle">status: balancing_compression</span>
+					</div>
+					
+					<div class="projects-grid">
+						
+						<!-- Project 1: MiRobot Studio -->
+						<div class="glass-panel project-card" id="project-node-a" data-cable-ids="cable-t3-a,cable-a-t1">
+							<div class="project-meta">
+								<span class="project-node">Node A // System Control</span>
+								<div class="project-status">
+									<span class="project-status-dot"></span>
+									<span>Active Dev</span>
+								</div>
+							</div>
+							<h3 class="project-title">MiRobot Studio // Reverse Engineering Xiaomi Vacuum</h3>
+							<p class="project-desc">
+								Reverse engineered a Xiaomi Mi Robot Vacuum-Mop 2 Pro (<code>ijai.vacuum.v15</code>) to enable complete local control without relying on the official mobile application. Extracted device authentication tokens, analyzed the MIoT protocol, and built a modular Python SDK dashboard for scanning and controlling action execution.
+							</p>
+							<div>
+								<h4 class="project-edge-title">The Tech Edge</h4>
+								<ul class="project-edge-list">
+									<li class="project-edge-item">Discovered MIoT property actions and local token-based UDP communication</li>
+									<li class="project-edge-item">Built modular SDK scanning properties, locators, and battery logs</li>
+									<li class="project-edge-item">Designed Flask system dashboard for local reverse engineered telemetry</li>
+								</ul>
+							</div>
+							<div class="project-footer">
+								<div class="project-tech">
+									<span class="tech-tag">Python</span>
+									<span class="tech-tag">python-miio</span>
+									<span class="tech-tag">MIIO/MIoT</span>
+									<span class="tech-tag">Flask</span>
+									<span class="tech-tag">UDP/IP</span>
+								</div>
+								<a href="https://github.com/logicnest-alpha" target="_blank" class="project-link">
+									GitHub
+								</a>
+							</div>
+						</div>
+
+						<!-- Project 2: NutriGuard AI -->
+						<div class="glass-panel project-card" id="project-node-b" data-cable-ids="cable-t3-b,cable-b-t1">
+							<div class="project-meta">
+								<span class="project-node">Node B // Sensory Hardware</span>
+								<div class="project-status">
+									<span class="project-status-dot"></span>
+									<span>IoT Edge Active</span>
+								</div>
+							</div>
+							<h3 class="project-title">NutriGuard AI // Intelligent Food Analytics</h3>
+							<p class="project-desc">
+								Coordinated a hardware-software co-design system utilizing sensory arrays to detect environmental and chemical freshness markers in food items. Processed edge-sensor inputs through an intelligent analytical backend model to output real-time decay timelines, safety metrics, and complete nutritional breakdowns.
+							</p>
+							<div>
+								<h4 class="project-edge-title">The Tech Edge</h4>
+								<ul class="project-edge-list">
+									<li class="project-edge-item">Sensor Data Fusion (ESP32, MQ-135, DHT22) for gas and moisture tracking</li>
+									<li class="project-edge-item">Edge integration with Groq AI Large Language Model backend orchestration</li>
+									<li class="project-edge-item">Generated decay timelines, organic deterioration indexes, and nutrition charts</li>
+								</ul>
+							</div>
+							<div class="project-footer">
+								<div class="project-tech">
+									<span class="tech-tag">ESP32</span>
+									<span class="tech-tag">C++ / Arduino</span>
+									<span class="tech-tag">Sensors</span>
+									<span class="tech-tag">Groq AI</span>
+									<span class="tech-tag">Data Fusion</span>
+								</div>
+								<a href="https://github.com/logicnest-alpha" target="_blank" class="project-link">
+									GitHub
+								</a>
+							</div>
+						</div>
+
+						<!-- Project 3: LeadGen Crawler -->
+						<div class="glass-panel project-card" id="project-node-c" data-cable-ids="cable-t3-c,cable-c-t1">
+							<div class="project-meta">
+								<span class="project-node">Node C // Automation Engine</span>
+								<div class="project-status">
+									<span class="project-status-dot"></span>
+									<span>Deployed</span>
+								</div>
+							</div>
+							<h3 class="project-title">LeadGen AI Personalization Crawler</h3>
+							<p class="project-desc">
+								Developed a production-grade data scraping architecture that bypasses standard rate limits to extract target B2B leads from the Google Maps ecosystem. Integrated this pipeline with a Large Language Model (LLM) orchestration layer to automatically parse business metrics and generate highly personalized outreach text.
+							</p>
+							<div class="vibe-badge">
+								⚡ Leveraged advanced AI-assisted engineering (Vibe Coding) to reduce standard software development lifecycle (SDLC) timelines by 70%, moving from conceptual design to functional GitHub deployment in hours.
+							</div>
+							<div>
+								<h4 class="project-edge-title">The Tech Edge</h4>
+								<ul class="project-edge-list">
+									<li class="project-edge-item">Asynchronous data harvesting bypassing Google rate limits</li>
+									<li class="project-edge-item">LLM Context Injection for micro-tailored B2B email scripts</li>
+									<li class="project-edge-item">Automated lead routing from Maps directly into CRM platforms</li>
+								</ul>
+							</div>
+							<div class="project-footer">
+								<div class="project-tech">
+									<span class="tech-tag">Node.js</span>
+									<span class="tech-tag">Playwright</span>
+									<span class="tech-tag">Groq API</span>
+									<span class="tech-tag">Zoho SMTP</span>
+								</div>
+								<a href="https://github.com/logicnest-alpha" target="_blank" class="project-link">
+									GitHub
+								</a>
+							</div>
+						</div>
+
+						<!-- Project 4: Sangam -->
+						<div class="glass-panel project-card" id="project-node-d" data-cable-ids="cable-t3-d,cable-d-t1">
+							<div class="project-meta">
+								<span class="project-node">Node D // Community platform</span>
+								<div class="project-status">
+									<span class="project-status-dot"></span>
+									<span>Prototype Live</span>
+								</div>
+							</div>
+							<h3 class="project-title">Sangam // Decentralized Community Platform</h3>
+							<p class="project-desc">
+								Engineered a real-time event synchronization application utilizing modern web protocols. Built a dynamic event generation pipeline allowing users to orchestrate localized geographic milestones, manage participant check-ins, and track collective community impact.
+							</p>
+							<div class="vibe-badge">
+								⚡ Leveraged advanced AI-assisted engineering (Vibe Coding) to reduce standard software development lifecycle (SDLC) timelines by 70%, moving from conceptual design to functional GitHub deployment in hours.
+							</div>
+							<div>
+								<h4 class="project-edge-title">The Tech Edge</h4>
+								<ul class="project-edge-list">
+									<li class="project-edge-item">Local geolocation routing matching events with participants</li>
+									<li class="project-edge-item">Optimized application state management for real-time live synchronization</li>
+									<li class="project-edge-item">Interactive check-ins displaying global project telemetry impact</li>
+								</ul>
+							</div>
+							<div class="project-footer">
+								<div class="project-tech">
+									<span class="tech-tag">Flutter / Dart</span>
+									<span class="tech-tag">State Management</span>
+									<span class="tech-tag">Geofencing</span>
+								</div>
+								<a href="https://github.com/logicnest-alpha" target="_blank" class="project-link">
+									GitHub
+								</a>
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- TIER 1: THE FOUNDATION / ANCHOR BASE -->
+				<div class="tier-wrapper" id="tier-1">
+					<div class="tier-header">
+						<span class="tier-num">Tier 01</span>
+						<h2 class="tier-title">The Foundation / Anchor Base</h2>
+						<span class="tier-subtitle">status: maximum_tension_anchor</span>
+					</div>
+					
+					<div class="foundation-grid">
+						<!-- Bio Info -->
+						<div class="glass-panel bio-panel">
+							<h3 class="bio-name">Vishal Chepyala</h3>
+							<span class="bio-subtitle">Computer Science and Engineering | Founder</span>
+							<p class="bio-text">
+								Currently pursuing my B.Tech at <strong>Vardhaman College of Engineering, Hyderabad</strong>. I build real systems, reverse engineer local communications, construct IoT monitors, and orchestrate client-facing media agencies. I move fast between hardware registers and LLM APIs, building production tools rather than conceptual slideshows.
+							</p>
+							<p class="bio-text">
+								As a founder, I operate at the intersection of business automation and embedded systems. I run client acquisition engines, design platforms like Bridgr, and write custom dashboards that automate habits, academics, and finances.
+							</p>
+						</div>
+
+						<!-- Skills Matrix (Tension Cables) -->
+						<div class="glass-panel skills-panel">
+							<h3 class="skills-section-title">Tension Cables // Tech Stack Matrix</h3>
+							<div class="skills-list">
+								<div class="skill-group">
+									<div class="skill-group-title">Automation & Web Architecture</div>
+									<div class="skill-group-items">
+										Web Scraping Frameworks, Browser Automation, Asynchronous Data Pipelines, API Gateway Orchestration
+									</div>
+								</div>
+								<div class="skill-group">
+									<div class="skill-group-title">AI Agentic Workflows</div>
+									<div class="skill-group-items">
+										Prompt Engineering, Personalized Context Injection, LLM System Integration, API Middleware
+									</div>
+								</div>
+								<div class="skill-group">
+									<div class="skill-group-title">Embedded IoT Systems</div>
+									<div class="skill-group-items">
+										Sensor Data Fusion, Hardware-to-Software Interfaces, Real-time Data Analytics, Low-level protocols (I2C, SPI, UART)
+									</div>
+								</div>
+								<div class="skill-group">
+									<div class="skill-group-title">Languages & Dashboards</div>
+									<div class="skill-group-items">
+										Python, JavaScript/TypeScript, HTML/CSS, Dart, SQL, Retool, Chart.js, Flask
+									</div>
+								</div>
+							</div>
+						</div>
+
+						<!-- Resume Core -->
+						<div class="glass-panel resume-core">
+							<h3 class="resume-title">Core Projects & Ventures</h3>
+							<div class="timeline">
+								
+								<div class="timeline-item">
+									<span class="timeline-dot"></span>
+									<div class="timeline-header">
+										<div>
+											<span class="timeline-org">KC Alpha Media</span>
+											<span class="timeline-role"> // Founder</span>
+										</div>
+										<span class="timeline-date">2025 - Present</span>
+									</div>
+									<p class="timeline-desc">
+										Founded and scaled a real estate social media marketing agency targeting Dubai/UAE, Canada, and US markets.
+									</p>
+									<ul class="timeline-bullets">
+										<li class="timeline-bullet">Engineered full automated client acquisition engines using Groq AI + Zoho SMTP to process hundreds of high-quality business leads.</li>
+										<li class="timeline-bullet">Built a client portal in Retool synced to Google Sheets with custom semanal reporting dashboards (Chart.js, printing PDF telemetry metrics).</li>
+									</ul>
+								</div>
+
+								<div class="timeline-item">
+									<span class="timeline-dot"></span>
+									<div class="timeline-header">
+										<div>
+											<span class="timeline-org">Bridgr Platform</span>
+											<span class="timeline-role"> // Founder & Creator</span>
+										</div>
+										<span class="timeline-date">2026 - Present</span>
+									</div>
+									<p class="timeline-desc">
+										Developed an influencer marketing ecosystem designed to bridge communication gaps between brands and content creators.
+									</p>
+									<ul class="timeline-bullets">
+										<li class="timeline-bullet">Designed complete brand design assets and structured 30-day instagram content launches.</li>
+										<li class="timeline-bullet">Created brand and creator-oriented engagement scripts utilizing LLMs to streamline influencer outreach.</li>
+									</ul>
+								</div>
+
+								<div class="timeline-item">
+									<span class="timeline-dot"></span>
+									<div class="timeline-header">
+										<div>
+											<span class="timeline-org">Command Center V8 // Second Brain</span>
+											<span class="timeline-role"> // Custom Dashboard</span>
+										</div>
+										<span class="timeline-date">2026</span>
+									</div>
+									<p class="timeline-desc">
+										Designed a lightweight, single-file HTML life-management interface to consolidate and track all operations.
+									</p>
+									<ul class="timeline-bullets">
+										<li class="timeline-bullet">Maintains status of habits, academics, agency metrics, and finance trackers.</li>
+										<li class="timeline-bullet">Implemented browser state persistence utilizing localStorage with full JSON export and import capabilities.</li>
+									</ul>
+								</div>
+
+								<div class="timeline-item">
+									<span class="timeline-dot"></span>
+									<div class="timeline-header">
+										<div>
+											<span class="timeline-org">Academic Lab Architecture</span>
+											<span class="timeline-role"> // Restaurant Order System</span>
+										</div>
+										<span class="timeline-date">2025</span>
+									</div>
+									<p class="timeline-desc">
+										Programmed a restaurant queuing and order management engine for Vardhaman College data structures curriculum.
+									</p>
+									<ul class="timeline-bullets">
+										<li class="timeline-bullet">Utilized double-ended queues (Deques) to maintain ordering pipelines with high-speed hashing search index lookup functions.</li>
+									</ul>
+								</div>
+
+							</div>
+						</div>
+
+					</div>
+				</div>
+
+				<!-- INTERACTIVE PHYSICS WIDGET -->
+				<div class="tier-wrapper">
+					<div class="tier-header">
+						<span class="tier-num">Interactive</span>
+						<h2 class="tier-title">Anti-Gravity Tensegrity Simulation</h2>
+						<span class="tier-subtitle">physics_mode: active</span>
+					</div>
+					<div class="glass-panel tensegrity-widget-container">
+						<p class="bio-text" style="margin-bottom: 0;">
+							Interactive simulation of the structural system. Drag the floating modules to observe how tension lines distribute compression load forces throughout the three-tiered suspended profile.
+						</p>
+						<div class="widget-canvas-container">
+							<canvas id="tensegrityCanvas" class="widget-canvas"></canvas>
+						</div>
+						<div class="widget-controls">
+							<span>Drag node nodes to pull strings • Double click to reset</span>
+							<button class="control-btn" id="resetBtn">Reset Physics Grid</button>
+						</div>
+					</div>
+				</div>
+
+			</div>
 		</main>
 		<Footer />
+
+		<!-- Dynamic Interactive Tensegrity Script -->
+		<script>
+			// Cable connection illumination script
+			document.addEventListener('DOMContentLoaded', () => {
+				const projectCards = document.querySelectorAll('.project-card');
+				
+				projectCards.forEach(card => {
+					card.addEventListener('mouseenter', () => {
+						const cableIds = card.getAttribute('data-cable-ids')?.split(',') || [];
+						cableIds.forEach(id => {
+							const lineElement = document.getElementById(id);
+							if (lineElement) {
+								lineElement.classList.add('active');
+							}
+						});
+					});
+
+					card.addEventListener('mouseleave', () => {
+						const cableIds = card.getAttribute('data-cable-ids')?.split(',') || [];
+						cableIds.forEach(id => {
+							const lineElement = document.getElementById(id);
+							if (lineElement) {
+								lineElement.classList.remove('active');
+							}
+						});
+					});
+				});
+
+				// Let's implement a simple 2D Tensegrity physics canvas
+				const canvas = document.getElementById('tensegrityCanvas') as HTMLCanvasElement;
+				if (!canvas) return;
+				const ctx = canvas.getContext('2d');
+				if (!ctx) return;
+
+				let width = canvas.width = canvas.parentElement?.clientWidth || 800;
+				let height = canvas.height = 300;
+
+				window.addEventListener('resize', () => {
+					if (!canvas.parentElement) return;
+					width = canvas.width = canvas.parentElement.clientWidth;
+				});
+
+				// Tensegrity physics system
+				interface Node {
+					x: number;
+					y: number;
+					vx: number;
+					vy: number;
+					radius: number;
+					color: string;
+					label: string;
+					tier: number;
+					isStatic: boolean;
+				}
+
+				interface Cable {
+					fromIdx: number;
+					toIdx: number;
+					restLength: number;
+					stiffness: number;
+					color: string;
+				}
+
+				let nodes: Node[] = [];
+				let cables: Cable[] = [];
+
+				function initPhysics() {
+					nodes = [
+						// Tier 3 (Top) - Static Anchor blog
+						{ x: width / 2, y: 40, vx: 0, vy: 0, radius: 10, color: '#06b6d4', label: 'Tier 3: The Vault', tier: 3, isStatic: true },
+						
+						// Tier 2 (Middle) - Suspended Projects nodes
+						{ x: width / 2 - 160, y: 130, vx: 0, vy: 0, radius: 14, color: '#8b5cf6', label: 'MiRobot', tier: 2, isStatic: false },
+						{ x: width / 2 - 50, y: 130, vx: 0, vy: 0, radius: 14, color: '#8b5cf6', label: 'NutriGuard', tier: 2, isStatic: false },
+						{ x: width / 2 + 50, y: 130, vx: 0, vy: 0, radius: 14, color: '#8b5cf6', label: 'LeadGen', tier: 2, isStatic: false },
+						{ x: width / 2 + 160, y: 130, vx: 0, vy: 0, radius: 14, color: '#8b5cf6', label: 'Sangam', tier: 2, isStatic: false },
+						
+						// Tier 1 (Bottom) - Solid base blocks
+						{ x: width / 2 - 100, y: 240, vx: 0, vy: 0, radius: 12, color: '#ec4899', label: 'Bio Base', tier: 1, isStatic: false },
+						{ x: width / 2 + 100, y: 240, vx: 0, vy: 0, radius: 12, color: '#ec4899', label: 'Skills Grid', tier: 1, isStatic: false },
+					];
+
+					cables = [
+						// Tier 3 to Tier 2 (Suspension)
+						{ fromIdx: 0, toIdx: 1, restLength: 180, stiffness: 0.1, color: 'rgba(6, 182, 212, 0.4)' },
+						{ fromIdx: 0, toIdx: 2, restLength: 120, stiffness: 0.1, color: 'rgba(6, 182, 212, 0.4)' },
+						{ fromIdx: 0, toIdx: 3, restLength: 120, stiffness: 0.1, color: 'rgba(6, 182, 212, 0.4)' },
+						{ fromIdx: 0, toIdx: 4, restLength: 180, stiffness: 0.1, color: 'rgba(6, 182, 212, 0.4)' },
+
+						// Tier 2 internal strut constraints (compression)
+						{ fromIdx: 1, toIdx: 2, restLength: 110, stiffness: 0.15, color: 'rgba(139, 92, 246, 0.3)' },
+						{ fromIdx: 2, toIdx: 3, restLength: 100, stiffness: 0.15, color: 'rgba(139, 92, 246, 0.3)' },
+						{ fromIdx: 3, toIdx: 4, restLength: 110, stiffness: 0.15, color: 'rgba(139, 92, 246, 0.3)' },
+
+						// Tier 2 to Tier 1
+						{ fromIdx: 1, toIdx: 5, restLength: 150, stiffness: 0.1, color: 'rgba(236, 72, 153, 0.4)' },
+						{ fromIdx: 2, toIdx: 5, restLength: 120, stiffness: 0.1, color: 'rgba(236, 72, 153, 0.4)' },
+						{ fromIdx: 3, toIdx: 6, restLength: 120, stiffness: 0.1, color: 'rgba(236, 72, 153, 0.4)' },
+						{ fromIdx: 4, toIdx: 6, restLength: 150, stiffness: 0.1, color: 'rgba(236, 72, 153, 0.4)' },
+
+						// Tier 1 bottom base tie
+						{ fromIdx: 5, toIdx: 6, restLength: 200, stiffness: 0.2, color: 'rgba(236, 72, 153, 0.5)' }
+					];
+				}
+
+				initPhysics();
+
+				let selectedNode: number | null = null;
+
+				canvas.addEventListener('mousedown', (e) => {
+					const rect = canvas.getBoundingClientRect();
+					const mouseX = e.clientX - rect.left;
+					const mouseY = e.clientY - rect.top;
+
+					nodes.forEach((node, idx) => {
+						if (node.isStatic) return;
+						const dist = Math.hypot(node.x - mouseX, node.y - mouseY);
+						if (dist < node.radius + 10) {
+							selectedNode = idx;
+						}
+					});
+				});
+
+				canvas.addEventListener('mousemove', (e) => {
+					if (selectedNode === null) return;
+					const rect = canvas.getBoundingClientRect();
+					const mouseX = e.clientX - rect.left;
+					const mouseY = e.clientY - rect.top;
+
+					nodes[selectedNode].x = mouseX;
+					nodes[selectedNode].y = mouseY;
+					nodes[selectedNode].vx = 0;
+					nodes[selectedNode].vy = 0;
+				});
+
+				const stopDrag = () => { selectedNode = null; };
+				canvas.addEventListener('mouseup', stopDrag);
+				canvas.addEventListener('mouseleave', stopDrag);
+				
+				canvas.addEventListener('dblclick', () => {
+					initPhysics();
+				});
+
+				document.getElementById('resetBtn')?.addEventListener('click', () => {
+					initPhysics();
+				});
+
+				// Physics Engine Loop
+				function updatePhysics() {
+					const gravity = 0.15;
+					const damping = 0.94;
+
+					// Apply gravity and damping to nodes
+					nodes.forEach((node) => {
+						if (node.isStatic) return;
+						node.vy += gravity;
+						node.x += node.vx;
+						node.y += node.vy;
+						node.vx *= damping;
+						node.vy *= damping;
+
+						// Wall bounce constraints
+						if (node.x < node.radius) { node.x = node.radius; node.vx *= -0.5; }
+						if (node.x > width - node.radius) { node.x = width - node.radius; node.vx *= -0.5; }
+						if (node.y < node.radius) { node.y = node.radius; node.vy *= -0.5; }
+						if (node.y > height - node.radius) { node.y = height - node.radius; node.vy *= -0.5; }
+					});
+
+					// Apply cable tension constraints (Spring forces)
+					for (let i = 0; i < 4; i++) { // Run multiple solver iterations for stiff cables
+						cables.forEach((cable) => {
+							const from = nodes[cable.fromIdx];
+							const to = nodes[cable.toIdx];
+							const dx = to.x - from.x;
+							const dy = to.y - from.y;
+							const dist = Math.hypot(dx, dy) || 0.1;
+							const delta = dist - cable.restLength;
+
+							// Force proportional to delta
+							const force = delta * cable.stiffness * 0.5;
+							const offsetX = (dx / dist) * force;
+							const offsetY = (dy / dist) * force;
+
+							if (!from.isStatic) {
+								from.x += offsetX;
+								from.y += offsetY;
+							}
+							if (!to.isStatic) {
+								to.x -= offsetX;
+								to.y -= offsetY;
+							}
+						});
+					}
+				}
+
+				function draw() {
+					if (!ctx) return;
+					ctx.clearRect(0, 0, width, height);
+
+					// Draw cables
+					cables.forEach((cable) => {
+						const from = nodes[cable.fromIdx];
+						const to = nodes[cable.toIdx];
+						const dist = Math.hypot(to.x - from.x, to.y - from.y);
+						
+						// Highlight cable colors if they are under heavy tension
+						const tensionRatio = Math.abs(dist - cable.restLength) / cable.restLength;
+						ctx.beginPath();
+						ctx.moveTo(from.x, from.y);
+						ctx.lineTo(to.x, to.y);
+						
+						if (tensionRatio > 0.1) {
+							ctx.strokeStyle = `rgba(6, 182, 212, ${Math.min(0.3 + tensionRatio * 3, 0.9)})`;
+							ctx.lineWidth = 2 + tensionRatio * 3;
+						} else {
+							ctx.strokeStyle = cable.color;
+							ctx.lineWidth = 1.5;
+						}
+						
+						ctx.setLineDash([5, 5]);
+						ctx.stroke();
+						ctx.setLineDash([]);
+					});
+
+					// Draw nodes
+					nodes.forEach((node) => {
+						// Outer glow
+						const glow = ctx.createRadialGradient(node.x, node.y, 2, node.x, node.y, node.radius + 10);
+						glow.addColorStop(0, node.color);
+						glow.addColorStop(1, 'rgba(0,0,0,0)');
+						
+						ctx.beginPath();
+						ctx.arc(node.x, node.y, node.radius + 10, 0, Math.PI * 2);
+						ctx.fillStyle = glow;
+						ctx.fill();
+
+						// Node body
+						ctx.beginPath();
+						ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
+						ctx.fillStyle = node.isStatic ? '#111827' : node.color;
+						ctx.strokeStyle = node.color;
+						ctx.lineWidth = 2;
+						ctx.fill();
+						ctx.stroke();
+
+						// Node text label
+						ctx.fillStyle = '#f3f4f6';
+						ctx.font = 'bold 9px monospace';
+						ctx.textAlign = 'center';
+						ctx.fillText(node.label, node.x, node.y - node.radius - 6);
+					});
+				}
+
+				function loop() {
+					updatePhysics();
+					draw();
+					requestAnimationFrame(loop);
+				}
+
+				loop();
+			});
+		</script>
 	</body>
 </html>

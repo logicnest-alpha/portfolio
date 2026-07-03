@@ -16,41 +16,80 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 		<BaseHead title={title} description={description} />
 		<style>
 			main {
-				width: calc(100% - 2em);
-				max-width: 100%;
-				margin: 0;
+				width: 100%;
+				max-width: 800px;
+				margin: 0 auto;
+				padding: 2rem 1rem;
 			}
 			.hero-image {
 				width: 100%;
+				margin-bottom: 2rem;
 			}
 			.hero-image img {
 				display: block;
 				margin: 0 auto;
-				border-radius: 12px;
-				box-shadow: var(--box-shadow);
+				border-radius: 16px;
+				box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+				border: 1px solid rgba(255, 255, 255, 0.08);
 			}
 			.prose {
-				width: 720px;
-				max-width: calc(100% - 2em);
-				margin: auto;
-				padding: 1em;
-				color: rgb(var(--gray-dark));
+				padding: 2rem;
+				background: var(--bg-glass);
+				backdrop-filter: blur(12px);
+				-webkit-backdrop-filter: blur(12px);
+				border: 1px solid var(--border-color);
+				border-radius: 16px;
+				color: var(--text-secondary);
 			}
 			.title {
-				margin-bottom: 1em;
-				padding: 1em 0;
+				margin-bottom: 2rem;
+				padding-bottom: 1rem;
+				border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 				text-align: center;
-				line-height: 1;
 			}
 			.title h1 {
-				margin: 0 0 0.5em 0;
+				margin: 0.5rem 0;
+				font-size: 2.25rem;
+				background: linear-gradient(135deg, #ffffff 40%, var(--accent-secondary) 100%);
+				-webkit-background-clip: text;
+				-webkit-text-fill-color: transparent;
 			}
 			.date {
-				margin-bottom: 0.5em;
-				color: rgb(var(--gray));
+				font-family: monospace;
+				font-size: 0.85rem;
+				color: var(--accent-primary);
+				margin-bottom: 0.5rem;
 			}
 			.last-updated-on {
 				font-style: italic;
+				color: var(--text-muted);
+			}
+			/* Styling inner content */
+			.prose :global(h2), .prose :global(h3) {
+				color: var(--text-primary);
+				margin-top: 1.5rem;
+				margin-bottom: 0.75rem;
+			}
+			.prose :global(p) {
+				margin-bottom: 1.25rem;
+				line-height: 1.7;
+			}
+			.prose :global(code) {
+				background: rgba(255, 255, 255, 0.05);
+				color: var(--accent-secondary);
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 4px;
+				padding: 0.1rem 0.3rem;
+				font-family: monospace;
+				font-size: 0.9em;
+			}
+			.prose :global(pre) {
+				background: #030307;
+				border: 1px solid rgba(255, 255, 255, 0.08);
+				border-radius: 8px;
+				padding: 1rem;
+				overflow-x: auto;
+				margin-bottom: 1.5rem;
 			}
 		</style>
 	</head>
