@@ -1,4 +1,4 @@
-\---
+---
 
 title: 'Day 1: Initializing the 60 LPA Engineering Engine'
 
@@ -8,7 +8,7 @@ pubDate: 'Jul 03 2026'
 
 heroImage: '/blog-placeholder-about.jpg'
 
-\---
+---
 
 
 
